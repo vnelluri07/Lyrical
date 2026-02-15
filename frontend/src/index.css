@@ -1,0 +1,61 @@
+@import "tailwindcss";
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  75% { transform: translateX(6px); }
+}
+
+@theme {
+  --color-bg: var(--c-bg);
+  --color-card: var(--c-card);
+  --color-card-hover: var(--c-hover);
+  --color-bdr: var(--c-border);
+  --color-input-bdr: var(--c-input-border);
+  --color-txt: var(--c-txt);
+  --color-txt2: var(--c-txt2);
+  --color-muted: var(--c-muted);
+  --color-accent: var(--c-accent);
+  --color-accent-hover: var(--c-accent-hover);
+  --color-accent-soft: var(--c-accent-soft);
+}
+
+:root {
+  --c-bg: #f8f9fa;
+  --c-card: #ffffff;
+  --c-hover: #f3f4f6;
+  --c-border: #e5e7eb;
+  --c-input-border: #d1d5db;
+  --c-txt: #202124;
+  --c-txt2: #6b7280;
+  --c-muted: #9ca3af;
+  --c-accent: #2563eb;
+  --c-accent-hover: #1d4ed8;
+  --c-accent-soft: #eff6ff;
+}
+
+:root.dark {
+  --c-bg: #0f172a;
+  --c-card: #1e293b;
+  --c-hover: #334155;
+  --c-border: #334155;
+  --c-input-border: #475569;
+  --c-txt: #f1f5f9;
+  --c-txt2: #94a3b8;
+  --c-muted: #64748b;
+  --c-accent: #3b82f6;
+  --c-accent-hover: #2563eb;
+  --c-accent-soft: #1e3a5f;
+}
+
+body {
+  background: var(--c-bg);
+  color: var(--c-txt);
+  font-family: 'Google Sans', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  transition: background-color 0.2s, color 0.2s;
+}

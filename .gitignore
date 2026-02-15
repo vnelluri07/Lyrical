@@ -1,0 +1,27 @@
+# Python
+backend/venv/
+__pycache__/
+*.pyc
+*.pyo
+.env
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.tsbuildinfo
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+~$*
+
+# Logs
+*.log
+nohup.out
+
+# Logo preview (dev only)
+logo-preview.html
