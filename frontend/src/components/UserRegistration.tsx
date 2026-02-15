@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { api, type UserOut } from "../api/client";
 
-const GOOGLE_CLIENT_ID = "938071398673-rdq3pg1c3ruef26lc3f7jlm0qdkd9pf4.apps.googleusercontent.com";
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "938071398673-rdq3pg1c3ruef26lc3f7jlm0qdkd9pf4.apps.googleusercontent.com";
 
 declare global { interface Window { google?: any; } }
 
