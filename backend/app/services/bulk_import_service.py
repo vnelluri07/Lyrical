@@ -16,14 +16,14 @@ yt = YTMusic()
 LANG_QUERIES = {
     "en": ["top hits", "popular songs", "best songs", "greatest hits", "hit songs"],
     "es": ["éxitos musicales", "canciones populares", "mejores canciones", "hits latinos"],
-    "hi": ["bollywood hits", "hindi songs", "best hindi songs", "bollywood popular"],
+    "hi": ["arijit singh hits", "hindi romantic songs", "hindi songs", "best hindi songs", "pritam songs", "bollywood hits"],
     "ko": ["kpop hits", "인기 가요", "korean popular songs", "kpop best"],
     "ja": ["jpop hits", "日本の人気曲", "japanese popular songs"],
     "pt": ["músicas populares", "hits brasileiros", "melhores músicas"],
     "fr": ["chansons populaires", "hits français", "meilleures chansons"],
     "de": ["deutsche hits", "beliebte lieder", "beste deutsche songs"],
     "it": ["canzoni italiane", "hits italiani", "musica italiana"],
-    "te": ["telugu hit songs", "telugu popular songs", "telugu melody songs"],
+    "te": ["anirudh telugu songs", "telugu melody songs", "telugu latest songs", "devi sri prasad songs", "thaman telugu hits", "telugu hit songs"],
     "ta": ["tamil hit songs", "tamil popular songs", "tamil melody hits"],
 }
 
