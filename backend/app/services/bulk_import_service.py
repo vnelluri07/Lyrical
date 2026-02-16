@@ -162,9 +162,13 @@ async def import_single(video_id: str, db: AsyncSession, language_override: str 
 
         # Fallback to Genius
         if not lines or len(lines) < 6:
+            logger.info(f"YT Music no lyrics for '{title}', trying Genius...")
             genius_lines = _genius_lyrics(title, artist)
             if genius_lines and len(genius_lines) >= 6:
+                logger.info(f"Genius found {len(genius_lines)} lines for '{title}'")
                 lines = genius_lines
+            else:
+                logger.warning(f"Genius also failed for '{title}' (token set: {bool(_get_genius_token())})")
 
         if not lines or len(lines) < 6:
             return None

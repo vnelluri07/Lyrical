@@ -17,6 +17,34 @@ import asyncio
 router = APIRouter(prefix="/admin", tags=["admin"], dependencies=[Depends(require_admin)])
 
 
+@router.get("/debug/genius")
+async def debug_genius():
+    import os
+    token = os.getenv("GENIUS_API_TOKEN", "")
+    result = {"token_set": bool(token), "token_prefix": token[:8] + "..." if token else "none"}
+    try:
+        from bs4 import BeautifulSoup
+        result["bs4"] = "ok"
+    except ImportError as e:
+        result["bs4"] = f"missing: {e}"
+    try:
+        import requests
+        r = requests.get("https://api.genius.com/search", params={"q": "Kesariya Arijit Singh"},
+                         headers={"Authorization": f"Bearer {token}"}, timeout=10)
+        data = r.json()
+        hits = data.get("response", {}).get("hits", [])
+        result["api_search"] = f"{len(hits)} hits" if hits else "0 hits"
+        if hits:
+            url = hits[0]["result"]["url"]
+            page = requests.get(url, timeout=10)
+            soup = BeautifulSoup(page.text, "html.parser")
+            divs = soup.select('div[data-lyrics-container="true"]')
+            result["scrape"] = f"{len(divs)} lyric divs found"
+    except Exception as e:
+        result["api_error"] = str(e)
+    return result
+
+
 # --- Songs ---
 
 @router.post("/songs/search", response_model=SongSearchResponse)
