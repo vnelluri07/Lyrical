@@ -17,6 +17,10 @@ if "neon.tech" in DATABASE_URL or "supabase" in DATABASE_URL:
     if "sslmode" not in DATABASE_URL:
         DATABASE_URL += "?sslmode=require" if "?" not in DATABASE_URL else "&sslmode=require"
 
+# Remove params not supported by asyncpg
+import re
+DATABASE_URL = re.sub(r'[&?]channel_binding=[^&]*', '', DATABASE_URL)
+
 engine = create_async_engine(DATABASE_URL, echo=False)
 async_session = async_sessionmaker(engine, expire_on_commit=False)
 
