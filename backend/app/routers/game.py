@@ -18,10 +18,17 @@ async def get_languages(db: AsyncSession = Depends(get_db)):
 
 
 @router.get("/challenge", response_model=GameChallenge)
-async def get_challenge(language: str | None = Query(None), db: AsyncSession = Depends(get_db)):
+async def get_challenge(language: str | None = Query(None), exclude: str | None = Query(None), db: AsyncSession = Depends(get_db)):
     q = select(Challenge).where(Challenge.is_active == True)
     if language:
         q = q.join(Song, Challenge.song_id == Song.id).where(Song.language == language.lower())
+    if exclude:
+        try:
+            ids = [int(x) for x in exclude.split(",") if x.strip()]
+            if ids:
+                q = q.where(Challenge.id.notin_(ids))
+        except ValueError:
+            pass
     result = await db.execute(q.order_by(func.random()).limit(1))
     challenge = result.scalar_one_or_none()
     if not challenge:

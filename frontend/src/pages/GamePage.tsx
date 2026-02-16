@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { api, type GameChallenge, type GuessResponse, type HintResponse, type RevealResponse } from "../api/client";
 import LyricDisplay from "../components/LyricDisplay";
 import GuessInput from "../components/GuessInput";
@@ -15,10 +15,15 @@ export default function GamePage({ userId, language }: { userId?: number; langua
   const [reveal, setReveal] = useState<RevealResponse | null>(null);
   const [snack, setSnack] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const [suggestion, setSuggestion] = useState<GuessResponse | null>(null);
+  const seenRef = useRef<number[]>([]);
 
   const loadChallenge = useCallback(async () => {
     setState("loading"); setSnack(null); setHint(null); setReveal(null); setSuggestion(null);
-    try { const c = await api.getChallenge(language); setChallenge(c); setState("playing"); }
+    try {
+      const c = await api.getChallenge(language, seenRef.current);
+      setChallenge(c); setState("playing");
+      seenRef.current = [...seenRef.current.slice(-30), c.challenge_id];
+    }
     catch { setState("no-challenges"); }
   }, [language]);
 

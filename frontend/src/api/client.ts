@@ -37,7 +37,13 @@ export interface BulkImportJob { id: number; source: string; language: string | 
 
 export const api = {
   // Game
-  getChallenge: (language?: string) => request<GameChallenge>(`/game/challenge${language ? `?language=${language}` : ""}`),
+  getChallenge: (language?: string, exclude?: number[]) => {
+    const params = new URLSearchParams();
+    if (language) params.set("language", language);
+    if (exclude?.length) params.set("exclude", exclude.join(","));
+    const qs = params.toString();
+    return request<GameChallenge>(`/game/challenge${qs ? `?${qs}` : ""}`);
+  },
   guess: (challenge_id: number, guess: string, user_id?: number) =>
     request<GuessResponse>("/game/guess", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ challenge_id, guess, user_id }) }),
   getHint: (id: number, user_id?: number) => request<HintResponse>(`/game/hint/${id}${user_id ? `?user_id=${user_id}` : ""}`),
