@@ -6,6 +6,8 @@ from collections import Counter
 from ytmusicapi import YTMusic
 from langdetect import detect, DetectorFactory
 DetectorFactory.seed = 0
+import requests
+from bs4 import BeautifulSoup
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models import Song, Lyric, Challenge, BulkImportJob
@@ -14,15 +16,38 @@ logger = logging.getLogger(__name__)
 yt = YTMusic()
 
 # Genius fallback for lyrics
-_genius = None
-def _get_genius():
-    global _genius
-    if _genius is None:
-        token = os.getenv("GENIUS_API_TOKEN")
-        if token:
-            import lyricsgenius
-            _genius = lyricsgenius.Genius(token, verbose=False, remove_section_headers=True, retries=2)
-    return _genius
+_genius_token = None
+def _get_genius_token():
+    global _genius_token
+    if _genius_token is None:
+        _genius_token = os.getenv("GENIUS_API_TOKEN", "")
+    return _genius_token
+
+def _genius_lyrics(title: str, artist: str) -> list[str] | None:
+    """Fetch lyrics from Genius API + scraping."""
+    token = _get_genius_token()
+    if not token:
+        return None
+    try:
+        r = requests.get("https://api.genius.com/search", params={"q": f"{title} {artist}"},
+                         headers={"Authorization": f"Bearer {token}"}, timeout=10)
+        hits = r.json().get("response", {}).get("hits", [])
+        if not hits:
+            return None
+        page = requests.get(hits[0]["result"]["url"], timeout=10)
+        soup = BeautifulSoup(page.text, "html.parser")
+        divs = soup.select('div[data-lyrics-container="true"]')
+        if not divs:
+            return None
+        lines = []
+        for d in divs:
+            for br in d.find_all("br"):
+                br.replace_with("\n")
+            lines.extend(d.get_text().split("\n"))
+        return [l.strip() for l in lines if l.strip() and not l.startswith("[")]
+    except Exception as e:
+        logger.warning(f"Genius failed for {title}: {e}")
+        return None
 
 # Language → search terms for discovery
 LANG_QUERIES = {
@@ -137,15 +162,9 @@ async def import_single(video_id: str, db: AsyncSession, language_override: str 
 
         # Fallback to Genius
         if not lines or len(lines) < 6:
-            genius = _get_genius()
-            if genius:
-                try:
-                    hit = genius.search_song(title, artist)
-                    if hit and hit.lyrics:
-                        raw = hit.lyrics.split("\n")
-                        lines = [l for l in raw if l.strip() and not l.startswith("[") and "Embed" not in l and "Contributors" not in l]
-                except Exception as e:
-                    logger.warning(f"Genius fallback failed for {title}: {e}")
+            genius_lines = _genius_lyrics(title, artist)
+            if genius_lines and len(genius_lines) >= 6:
+                lines = genius_lines
 
         if not lines or len(lines) < 6:
             return None
