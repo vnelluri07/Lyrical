@@ -24,6 +24,7 @@ export default function BulkImportTab() {
   const [challengesPerSong, setChallengesPerSong] = useState("1");
   const [yearFrom, setYearFrom] = useState("");
   const [yearTo, setYearTo] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [jobs, setJobs] = useState<BulkImportJob[]>([]);
   const [activeJob, setActiveJob] = useState<BulkImportJob | null>(null);
   const [loading, setLoading] = useState(false);
@@ -69,6 +70,7 @@ export default function BulkImportTab() {
         language || undefined,
         yearFrom ? parseInt(yearFrom) : undefined,
         yearTo ? parseInt(yearTo) : undefined,
+        searchQuery || undefined,
       );
       setActiveJob(job);
       loadJobs();
@@ -118,6 +120,10 @@ export default function BulkImportTab() {
             <input type="text" inputMode="numeric" className={sel} placeholder="e.g. 2024" maxLength={4} value={yearTo} onChange={e => setYearTo(numOnly(e.target.value))} />
           </div>
         </div>
+        <div>
+          <label className="text-xs text-muted block mb-1">Custom search query (optional)</label>
+          <input type="text" className={sel} placeholder="e.g. arijit singh romantic" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
+        </div>
         {sourceInfo && <p className="text-xs text-muted italic">ℹ️ {sourceInfo}</p>}
         {error && <p className="text-red-500 text-sm">{error}</p>}
         <button className={btn} onClick={start} disabled={loading || activeJob?.status === "running"}>
@@ -161,6 +167,7 @@ export default function BulkImportTab() {
               <div key={j.id} className="flex items-center justify-between text-sm p-2 rounded-lg hover:bg-card-hover cursor-pointer" onClick={() => setActiveJob(j)}>
                 <div className="text-txt">
                   #{j.id} — {j.source} {j.language || "any"} × {j.requested_count}
+                  {j.search_query && ` "${j.search_query}"`}
                   {j.year_from && ` (${j.year_from}–${j.year_to || "now"})`}
                 </div>
                 <div className="flex items-center gap-3">

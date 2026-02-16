@@ -90,6 +90,7 @@ class BulkImportJob(Base):
     challenges_per_song: Mapped[int] = mapped_column(Integer, default=1)
     year_from: Mapped[int | None] = mapped_column(Integer, nullable=True)
     year_to: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    search_query: Mapped[str | None] = mapped_column(String(200), nullable=True)
     status: Mapped[str] = mapped_column(String(20), default="pending")  # pending, running, completed, failed
     total_found: Mapped[int] = mapped_column(Integer, default=0)
     imported: Mapped[int] = mapped_column(Integer, default=0)

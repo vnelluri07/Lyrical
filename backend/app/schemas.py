@@ -130,6 +130,7 @@ class BulkImportRequest(BaseModel):
     challenges_per_song: int = 1
     year_from: int | None = None
     year_to: int | None = None
+    search_query: str | None = None
 
 class BulkImportJobOut(BaseModel):
     id: int
@@ -139,6 +140,7 @@ class BulkImportJobOut(BaseModel):
     challenges_per_song: int
     year_from: int | None
     year_to: int | None
+    search_query: str | None
     status: str
     total_found: int
     imported: int

@@ -162,7 +162,7 @@ async def start_bulk_import(req: BulkImportRequest, db: AsyncSession = Depends(g
     job = BulkImportJob(
         source=req.source, language=req.language, requested_count=req.count,
         challenges_per_song=req.challenges_per_song,
-        year_from=req.year_from, year_to=req.year_to,
+        year_from=req.year_from, year_to=req.year_to, search_query=req.search_query,
     )
     db.add(job)
     await db.commit()
@@ -190,7 +190,7 @@ def _job_out(job: BulkImportJob) -> BulkImportJobOut:
     return BulkImportJobOut(
         id=job.id, source=job.source, language=job.language,
         requested_count=job.requested_count, challenges_per_song=job.challenges_per_song,
-        year_from=job.year_from, year_to=job.year_to,
+        year_from=job.year_from, year_to=job.year_to, search_query=job.search_query,
         status=job.status, total_found=job.total_found, imported=job.imported,
         skipped=job.skipped, failed=job.failed, challenges_created=job.challenges_created,
         log=job.log, created_at=str(job.created_at),

@@ -33,7 +33,7 @@ export interface ChallengeOut { id: number; song_id: number; song_title: string;
 export interface UserOut { id: number; username: string; first_name: string; last_name: string; avatar_url?: string | null; }
 export interface LeaderboardEntry { user_id: number; username: string; first_name: string; last_name: string; avatar_url: string | null; total_points: number; games_played: number; }
 export interface IssueOut { id: number; user_id: number; username: string; subject: string; message: string; status: string; created_at: string; }
-export interface BulkImportJob { id: number; source: string; language: string | null; requested_count: number; challenges_per_song: number; year_from: number | null; year_to: number | null; status: string; total_found: number; imported: number; skipped: number; failed: number; challenges_created: number; log: string | null; created_at: string; }
+export interface BulkImportJob { id: number; source: string; language: string | null; requested_count: number; challenges_per_song: number; year_from: number | null; year_to: number | null; search_query: string | null; status: string; total_found: number; imported: number; skipped: number; failed: number; challenges_created: number; log: string | null; created_at: string; }
 
 export const api = {
   // Game
@@ -78,8 +78,8 @@ export const api = {
   getIssues: () => request<IssueOut[]>("/admin/issues", { headers: adminHeaders() }),
 
   // Bulk Import
-  startBulkImport: (source: string, count: number, challenges_per_song: number, language?: string, year_from?: number, year_to?: number) =>
-    request<BulkImportJob>("/admin/bulk-import", { method: "POST", headers: adminHeaders(), body: JSON.stringify({ source, count, challenges_per_song, language: language || null, year_from: year_from || null, year_to: year_to || null }) }),
+  startBulkImport: (source: string, count: number, challenges_per_song: number, language?: string, year_from?: number, year_to?: number, search_query?: string) =>
+    request<BulkImportJob>("/admin/bulk-import", { method: "POST", headers: adminHeaders(), body: JSON.stringify({ source, count, challenges_per_song, language: language || null, year_from: year_from || null, year_to: year_to || null, search_query: search_query || null }) }),
   getBulkImportJobs: () => request<BulkImportJob[]>("/admin/bulk-import/jobs", { headers: adminHeaders() }),
   getBulkImportJob: (id: number) => request<BulkImportJob>(`/admin/bulk-import/jobs/${id}`, { headers: adminHeaders() }),
 };

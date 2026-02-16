@@ -30,9 +30,12 @@ LANG_QUERIES = {
 DEFAULT_QUERIES = ["top songs", "popular songs", "greatest hits", "best songs ever", "hit songs"]
 
 
-async def discover_ytmusic(language: str | None, count: int, year_from: int | None, year_to: int | None) -> list[dict]:
+async def discover_ytmusic(language: str | None, count: int, year_from: int | None, year_to: int | None, search_query: str | None = None) -> list[dict]:
     """Discover songs from YT Music via search queries."""
-    queries = LANG_QUERIES.get(language, DEFAULT_QUERIES) if language else DEFAULT_QUERIES
+    if search_query:
+        queries = [search_query]
+    else:
+        queries = LANG_QUERIES.get(language, DEFAULT_QUERIES) if language else DEFAULT_QUERIES
     seen_ids = set()
     seen_titles = set()  # normalized title+artist to avoid same song from different videos
     results = []
@@ -211,7 +214,7 @@ async def run_bulk_import(job_id: int, db_factory):
 
         songs = await discover_ytmusic(
             language=job.language, count=job.requested_count,
-            year_from=job.year_from, year_to=job.year_to,
+            year_from=job.year_from, year_to=job.year_to, search_query=job.search_query,
         )
 
         async with db_factory() as db:
