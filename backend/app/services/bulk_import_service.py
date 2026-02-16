@@ -112,6 +112,10 @@ async def import_single(video_id: str, db: AsyncSession, language_override: str 
         title = details.get("title", "Unknown")
         artist = details.get("author", "Unknown")
 
+        # Skip songs with unknown metadata
+        if title.lower() in ("unknown", "") or artist.lower() in ("unknown", ""):
+            return None
+
         # Check duplicate by title+artist (same song, different video)
         dup = await db.execute(
             select(Song).where(func.lower(Song.title) == title.strip().lower(), func.lower(Song.artist) == artist.strip().lower())
