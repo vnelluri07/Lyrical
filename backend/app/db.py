@@ -12,16 +12,15 @@ if DATABASE_URL.startswith("postgres://"):
 elif DATABASE_URL.startswith("postgresql://"):
     DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
 
-# Add sslmode for cloud providers (Neon, Supabase, etc.)
-if "neon.tech" in DATABASE_URL or "supabase" in DATABASE_URL:
-    if "sslmode" not in DATABASE_URL:
-        DATABASE_URL += "?sslmode=require" if "?" not in DATABASE_URL else "&sslmode=require"
-
 # Remove params not supported by asyncpg
 import re
-DATABASE_URL = re.sub(r'[&?]channel_binding=[^&]*', '', DATABASE_URL)
+DATABASE_URL = re.sub(r'[&?](channel_binding|sslmode)=[^&]*', '', DATABASE_URL)
+# Clean up trailing ? if all params were stripped
+DATABASE_URL = DATABASE_URL.rstrip('?')
 
-engine = create_async_engine(DATABASE_URL, echo=False)
+# Use SSL for cloud providers
+_use_ssl = "neon.tech" in DATABASE_URL or "supabase" in DATABASE_URL
+engine = create_async_engine(DATABASE_URL, echo=False, connect_args={"ssl": "require"} if _use_ssl else {})
 async_session = async_sessionmaker(engine, expire_on_commit=False)
 
 
