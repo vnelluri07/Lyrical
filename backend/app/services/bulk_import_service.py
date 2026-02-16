@@ -1,4 +1,5 @@
 import asyncio
+import os
 import random
 import logging
 from collections import Counter
@@ -11,6 +12,17 @@ from app.models import Song, Lyric, Challenge, BulkImportJob
 
 logger = logging.getLogger(__name__)
 yt = YTMusic()
+
+# Genius fallback for lyrics
+_genius = None
+def _get_genius():
+    global _genius
+    if _genius is None:
+        token = os.getenv("GENIUS_API_TOKEN")
+        if token:
+            import lyricsgenius
+            _genius = lyricsgenius.Genius(token, verbose=False, remove_section_headers=True, retries=2)
+    return _genius
 
 # Language → search terms for discovery
 LANG_QUERIES = {
@@ -110,17 +122,29 @@ async def import_single(video_id: str, db: AsyncSession, language_override: str 
 
         watch = yt.get_watch_playlist(videoId=video_id)
         lyrics_browse_id = watch.get("lyrics")
-        if not lyrics_browse_id:
-            return None
+        lines = None
 
-        lyrics_data = yt.get_lyrics(lyrics_browse_id)
-        if not lyrics_data or not lyrics_data.get("lyrics"):
-            return None
+        # Try YT Music lyrics first
+        if lyrics_browse_id:
+            lyrics_data = yt.get_lyrics(lyrics_browse_id)
+            if lyrics_data and lyrics_data.get("lyrics"):
+                raw = lyrics_data["lyrics"]
+                lines = [l for l in (raw.split("\n") if isinstance(raw, str) else [l.text for l in raw]) if l.strip()]
 
-        raw = lyrics_data["lyrics"]
-        lines = [l for l in (raw.split("\n") if isinstance(raw, str) else [l.text for l in raw]) if l.strip()]
-        if len(lines) < 6:
-            return None  # too short for a challenge
+        # Fallback to Genius
+        if not lines or len(lines) < 6:
+            genius = _get_genius()
+            if genius:
+                try:
+                    hit = genius.search_song(title, artist)
+                    if hit and hit.lyrics:
+                        raw = hit.lyrics.split("\n")
+                        lines = [l for l in raw if l.strip() and not l.startswith("[") and "Embed" not in l and "Contributors" not in l]
+                except Exception as e:
+                    logger.warning(f"Genius fallback failed for {title}: {e}")
+
+        if not lines or len(lines) < 6:
+            return None
 
         language = language_override
         if not language:

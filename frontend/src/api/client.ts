@@ -56,6 +56,8 @@ export const api = {
   deleteChallenge: (id: number) => request<{ ok: boolean }>(`/admin/challenges/${id}`, { method: "DELETE", headers: adminHeaders() }),
   setSongLanguage: (id: number, language: string) =>
     request<{ ok: boolean }>(`/admin/songs/${id}/language?language=${language}`, { method: "PUT", headers: adminHeaders() }),
+  deleteSong: (id: number) =>
+    request<{ ok: boolean }>(`/admin/songs/${id}`, { method: "DELETE", headers: adminHeaders() }),
 
   // Users
   register: (username: string, first_name: string, last_name: string) =>

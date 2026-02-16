@@ -64,6 +64,16 @@ async def set_language(song_id: int, language: str = Query(..., min_length=2, ma
     return {"ok": True, "language": song.language}
 
 
+@router.delete("/songs/{song_id}")
+async def delete_song(song_id: int, db: AsyncSession = Depends(get_db)):
+    song = await db.get(Song, song_id)
+    if not song:
+        raise HTTPException(404, "Song not found")
+    await db.delete(song)
+    await db.commit()
+    return {"ok": True}
+
+
 # --- Challenges ---
 
 @router.post("/challenges", response_model=ChallengeOut)

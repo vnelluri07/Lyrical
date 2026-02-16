@@ -15,6 +15,7 @@ export default function SongSearch({ onSongSelect }: { onSongSelect: (song: Song
   const [importing, setImporting] = useState<string | null>(null);
   const [importLang, setImportLang] = useState<Record<string, string>>({});
   const [editingLang, setEditingLang] = useState<number | null>(null);
+  const [deleting, setDeleting] = useState<number | null>(null);
   const [msg, setMsg] = useState("");
 
   const search = async (e: React.FormEvent) => { e.preventDefault(); if (!query.trim()) return; setMsg(""); setResults((await api.searchSongs(query)).results); };
@@ -25,6 +26,13 @@ export default function SongSearch({ onSongSelect }: { onSongSelect: (song: Song
     setImporting(null);
   };
   const updateLang = async (songId: number, lang: string) => { await api.setSongLanguage(songId, lang); setEditingLang(null); loadSongs(); };
+  const removeSong = async (id: number) => {
+    if (!confirm("Delete this song and all its challenges?")) return;
+    setDeleting(id);
+    try { await api.deleteSong(id); setMsg("🗑️ Song deleted"); loadSongs(); }
+    catch (e: any) { setMsg(`❌ ${e.message}`); }
+    setDeleting(null);
+  };
   const loadSongs = async () => { setSongs(await api.listSongs()); };
   useEffect(() => { loadSongs(); }, []);
 
@@ -86,6 +94,10 @@ export default function SongSearch({ onSongSelect }: { onSongSelect: (song: Song
               ) : (
                 <button onClick={() => setEditingLang(s.id)} className="text-muted text-xs uppercase hover:text-accent transition-colors">{s.language || "??"}</button>
               )}
+              <button onClick={() => removeSong(s.id)} disabled={deleting === s.id}
+                className="text-red-400 hover:text-red-500 disabled:opacity-50 transition-colors text-xs" title="Delete song">
+                {deleting === s.id ? "..." : "✕"}
+              </button>
             </div>
           ))}
         </div>
