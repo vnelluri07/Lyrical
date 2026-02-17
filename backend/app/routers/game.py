@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import select, func
+from sqlalchemy import select, func, case, literal
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db import get_db
 from app.models import Song, Lyric, Challenge, Score, User
@@ -19,9 +19,9 @@ async def get_languages(db: AsyncSession = Depends(get_db)):
 
 @router.get("/challenge", response_model=GameChallenge)
 async def get_challenge(language: str | None = Query(None), exclude: str | None = Query(None), db: AsyncSession = Depends(get_db)):
-    q = select(Challenge).where(Challenge.is_active == True)
+    q = select(Challenge).join(Song, Challenge.song_id == Song.id).where(Challenge.is_active == True)
     if language:
-        q = q.join(Song, Challenge.song_id == Song.id).where(Song.language == language.lower())
+        q = q.where(Song.language == language.lower())
     if exclude:
         try:
             ids = [int(x) for x in exclude.split(",") if x.strip()]
@@ -29,7 +29,13 @@ async def get_challenge(language: str | None = Query(None), exclude: str | None 
                 q = q.where(Challenge.id.notin_(ids))
         except ValueError:
             pass
-    result = await db.execute(q.order_by(func.random()).limit(1))
+    # Weight newer songs higher: year 2025+ → weight 5, 2022-2024 → 3, older/unknown → 1
+    weight = case(
+        (Song.year >= 2025, literal(5)),
+        (Song.year >= 2022, literal(3)),
+        else_=literal(1),
+    )
+    result = await db.execute(q.order_by((func.random() * weight).desc()).limit(1))
     challenge = result.scalar_one_or_none()
     if not challenge:
         raise HTTPException(404, "No active challenges available")
